@@ -115,9 +115,8 @@ async function handleClick(
 			}
 		}
 
+		void updateItem(tab?.id ? await getTabUrl(tab?.id) : '');
 		throw error;
-	} finally {
-		void updateItem();
 	}
 }
 
