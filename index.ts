@@ -1,6 +1,6 @@
 import chromeP from 'webext-polyfill-kinda';
 import {isBackground} from 'webext-detect-page';
-import {isUrlPermittedByManifest} from 'webext-permissions';
+import {isUrlPermittedByManifest, normalizeManifestPermissions} from 'webext-permissions';
 import {getTabUrl} from 'webext-tools';
 import {executeFunction} from 'webext-content-scripts';
 
@@ -32,8 +32,16 @@ async function updateItem(url?: string): Promise<void> {
 		enabled: true,
 	};
 
+	const normalizedManifestPermissions = await normalizeManifestPermissions();
+	const normalizedOrigins = normalizeManifestPermissions.origins;
+	if (normalizedOrigins.length == 1 && normalizedOrigins[0] == '<all_urls>') {
+		// Extension is locked as enabled on all sites
+		console.log('locked to all sites');
+		settings.checked = true;
+		settings.enabled = false;
+	}
 	// No URL means no activeTab, no manifest permission, no granted permission, or no permission possible (chrome://)
-	if (url) {
+	else if (url) {
 		const {origin} = new URL(url);
 		// Manifest permissions can't be removed; this disables the toggle on those domains
 		const isDefault = isUrlPermittedByManifest(url);
